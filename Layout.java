@@ -14,9 +14,7 @@ import javax.imageio.ImageIO;
 public class Layout {
 	private BufferedImage original_image, image;
 	private ArrayList blobs;
-
 	ArrayList<BlobFinder.Blob> blobList;
-
 	// Get The Image
 	public Layout(BufferedImage image) {
 		if (image==null){
@@ -88,7 +86,7 @@ public class Layout {
 		/*System.out.printf(
 				"Loaded image: width: %d, height: %d, num bytes: %d\n", width,
 				height, srcData.length);
-		*/
+		 */
 		// Create Monochrome version - using basic threshold technique
 		byte[] monoData = new byte[width * height];
 		int srcPtr = 0;
@@ -110,7 +108,7 @@ public class Layout {
 		ArrayList<BlobFinder.Blob> blobList = new ArrayList();
 		finder.detectBlobs(monoData, dstData, 0, -1, (byte) 0, blobList);
 		this.blobList = blobList;
-		//for(BlobFinder.Blob blob:blobList) System.out.println(blob);
+		for(BlobFinder.Blob blob:blobList) countPixel(blob);
 
 	}
 
@@ -256,7 +254,7 @@ public class Layout {
 				x += 1;
 			}
 		}
-	
+
 
 	}
 	public void smearHorizontally(double fraction){
@@ -283,7 +281,7 @@ public class Layout {
 			if(yMax <= 0){
 				continue;
 			}
-			
+
 			while (y>=yMax) {
 				x = blob.xMin;
 				while (x <= blob.xMax) {
@@ -363,7 +361,7 @@ public class Layout {
 			}
 			avg_corr/=(width-offset);
 			System.out.println();
-			
+
 			if((float)blob.mass/(height*width)>.75){//||avg_corr>0.9){
 				int x = blob.xMin, y;
 				while (x <= blob.xMax) {
@@ -380,9 +378,105 @@ public class Layout {
 		for(BlobFinder.Blob blob:toRemoveList){
 			blobList.remove(blob);
 		}
-			
-		
-		
+
+	}
+	public void countPixel(BlobFinder.Blob blob){
+		BufferedImage takeimage=image.getSubimage(blob.xMin, blob.yMin, blob.xMax-blob.xMin, blob.yMax-blob.yMin);
+		int bCount=0;
+		int maxBcount=0;
+		int wCount=0;
+		int maxWcount=0;
+		int mWidth = takeimage.getWidth();
+		int mHeight = takeimage.getHeight();
+		int diagonal_length= mWidth>mHeight?mHeight:mWidth;
+		for(int i=0;i<diagonal_length;i++){
+			int mpixel = takeimage.getRGB(i, i);
+			Color mgetcolor = new Color(mpixel);
+			if(mgetcolor.getRed()==0){	//blackpixel encounterd
+				bCount+=1;
+				if(bCount>maxBcount){
+					maxBcount=bCount;
+				}
+				wCount=0;
+			}
+			else{
+				wCount+=1;
+				if(wCount>maxWcount){
+					maxWcount=wCount;
+					bCount=0;
+				}
+			}
+
+		}
+	}	//CountPixel() ends here.
+
+	public void selectImage(){
+		System.out.println("Process for selecting Image has Started.");
+		ArrayList<Integer> tempwvalleycount = new ArrayList<Integer>(wvalleycount); 
+		ArrayList<Integer> tempbvalleycount = new ArrayList<Integer>(bvalleycount); 
+		System.out.println(wvalleycount);
+		System.out.println(bvalleycount);
+		System.out.println("The new Formed arrays are:\n");
+		if (sizeofarray == 0)
+			return;
+
+
+		for(int i=sizeofarray-1;i>0;i--){
+			if(bvalleycount.get(i)>20){
+				wvalleycount.remove(i);
+				bvalleycount.remove(i);
+				sizeofarray = bvalleycount.size();
+
+
+			}
+		}
+
+		for(int i=0;i<sizeofarray;i++){
+			if(bvalleycount.get(i)>20){
+				wvalleycount.remove(i);
+				bvalleycount.remove(i);
+				sizeofarray = bvalleycount.size();
+
+
+			}
+		}
+
+		System.out.println(wvalleycount);	// showing the arraylist to check.
+		System.out.println(bvalleycount);
+		int small = wvalleycount.get(0);
+
+
+
+
+		for (int i = 0; i < sizeofarray; i++)
+		{
+			if (wvalleycount.get(i) < small)
+			{
+				small = wvalleycount.get(i);
+				tempb = bvalleycount.get(i);
+				getimageindex = i;
+
+			}
+
+
+		}
+
+		getimageindex=0;
+		for(int i=0;i<tempbvalleycount.size();i++){
+			if(small == tempwvalleycount.get(i) && tempb == tempbvalleycount.get(i)){
+				getimageindex = i;
+
+			}
+		}
+
+		/*	System.out.println("The new Size of array is :"+sizeofarray);
+		System.out.println("The selected ImageIndex is:"+getimageindex);	//gives the actual image index for further processing.
+		 */
+
+
+		System.out.println("SelectImage() finished.");
+		projection();
+
 	}
 
 }
