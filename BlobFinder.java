@@ -32,6 +32,8 @@ public class BlobFinder
 		public int yMin;
 		public int yMax;
 		public int mass;
+		public int white_diagonal;
+		public int black_diagonal;
 
 		public Blob(int xMin, int xMax, int yMin, int yMax, int mass)
 		{
